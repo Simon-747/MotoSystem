@@ -1,0 +1,20 @@
+# Entorno virtual de Python
+.venv/
+venv/
+
+# Archivos Python temporales
+__pycache__/
+*.py[cod]
+
+# Variables de entorno y datos privados
+.env
+
+# Archivos CSV con datos de prueba
+*.csv
+
+# Configuración local de herramientas
+.idea/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
