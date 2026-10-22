@@ -58,7 +58,6 @@ def read_all_users_csv():
 
             for row in reader:
                 row["id"] = int(row["id"])
-                row["id_type"] = int(row["id_type"])
                 users.append(UserID(**row))
 
             return users
