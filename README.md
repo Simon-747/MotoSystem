@@ -1,5 +1,4 @@
-
-# MotoSystem
+# MotoSystem 
 
 Motorcycle Management and Maintenance System developed with Python and FastAPI.
 
@@ -7,7 +6,7 @@ Motorcycle Management and Maintenance System developed with Python and FastAPI.
 
 MotoSystem is an academic software development project designed to manage motorcycle owners, motorcycles, and maintenance records through a REST API.
 
-The application uses Pydantic for data validation and CSV files for local data storage.
+The application uses Pydantic for data validation and CSV files for local data storage. It includes predefined catalogs for identification document types and motorcycle maintenance types.
 
 ## Features
 
@@ -18,6 +17,8 @@ The application uses Pydantic for data validation and CSV files for local data s
 - Register and list maintenance records.
 - Retrieve, update, and delete maintenance records.
 - Validate relationships between owners, motorcycles, and maintenance records.
+- Validate identification document types using a predefined catalog.
+- Validate maintenance types using a predefined catalog.
 - Prevent deleting owners or motorcycles that have associated records.
 
 ## Technologies
@@ -25,6 +26,7 @@ The application uses Pydantic for data validation and CSV files for local data s
 - Python 3.13
 - FastAPI
 - Pydantic
+- StrEnum for predefined catalogs
 - CSV for data storage
 - Git and GitHub for version control
 
@@ -100,4 +102,4 @@ CSV files are excluded from version control. Therefore, a fresh installation sta
 
 ## Author
 
-Academic project developed as part of a Software Development course.
+### Simon Raul Rodriguez Velosa
