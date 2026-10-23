@@ -10,6 +10,7 @@ from data.maintenance import (
     delete_maintenance_csv,
 )
 from data.motorcycle import read_all_motorcycles_csv
+from data.bill import read_all_bills_csv
 
 router = APIRouter()
 
@@ -105,10 +106,25 @@ def update_maintenance(
     status_code=status.HTTP_204_NO_CONTENT
 )
 def delete_maintenance(maintenance_id: int):
-    deleted = delete_maintenance_csv(maintenance_id)
+    maintenance = read_one_maintenance_csv(maintenance_id)
 
-    if not deleted:
+    if maintenance is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Maintenance not found"
         )
+
+    bills = read_all_bills_csv()
+
+    has_bills = any(
+        bill.maintenance_id == maintenance_id
+        for bill in bills
+    )
+
+    if has_bills:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete maintenance with registered bills"
+        )
+
+    delete_maintenance_csv(maintenance_id)

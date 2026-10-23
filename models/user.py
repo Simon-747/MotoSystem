@@ -14,4 +14,9 @@ class UserID(UserBase):
     id: int
 
 class UserUpdate(BaseModel):
-    first_name: str
+    first_name: str | None = None
+    last_name: str | None = None
+    id_type: IdType | None = None
+    document: str | None = None
+    phone_number: str | None = None
+    email: EmailStr | None = None

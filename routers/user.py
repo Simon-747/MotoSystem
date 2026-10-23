@@ -9,6 +9,7 @@ from data.user import (
     delete_user_csv,
 )
 from data.motorcycle import read_all_motorcycles_csv
+from data.bill import read_all_bills_csv
 
 router = APIRouter()
 
@@ -81,6 +82,19 @@ def delete_user(user_id: int):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot delete user with registered motorcycles"
+        )
+
+    bills = read_all_bills_csv()
+
+    has_bills = any(
+        bill.user_id == user_id
+        for bill in bills
+    )
+
+    if has_bills:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete user with registered bills"
         )
 
     delete_user_csv(user_id)
