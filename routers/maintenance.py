@@ -9,7 +9,6 @@ from data.maintenance import (
     update_maintenance_csv,
     delete_maintenance_csv,
 )
-from data.motorcycle import read_all_motorcycles_csv
 from data.bill import read_all_bills_csv
 
 router = APIRouter()

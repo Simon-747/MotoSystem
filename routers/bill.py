@@ -105,9 +105,6 @@ def read_one_bill(bill_id: int):
     return bill
 
 
-
-@router.put("/{bill_id}", response_model=Bill)
-
 @router.put("/{bill_id}", response_model=Bill)
 def update_bill(bill_id: int, updated_bill: BillUpdateInput):
     current_bill = read_one_bill_csv(bill_id)

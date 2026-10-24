@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from models.motorcycle import MotorcycleBase, MotorcycleID
 from data.user import read_all_users_csv
-from data.motorcycle import create_motorcycle_register
+
 from data.motorcycle import (
     create_motorcycle_register,
     read_all_motorcycles_csv,
