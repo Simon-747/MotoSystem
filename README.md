@@ -1,40 +1,38 @@
-# MotoSystem 
+# MotoSystem V.1
 
-Motorcycle Management and Maintenance System developed with Python and FastAPI.
+Motorcycle management and maintenance system developed with Python and FastAPI.
 
 ## Description
 
-MotoSystem is an academic software development project designed to manage motorcycle owners, motorcycles, and maintenance records through a REST API.
+MotoSystem is an academic software development project designed to manage motorcycle owners, motorcycles, maintenance records, spare parts, and invoices through FastAPI.
 
-The application uses Pydantic for data validation and CSV files for local data storage. It includes predefined catalogs for identification document types and motorcycle maintenance types.
+The application uses Pydantic for data validation and CSV files for local data storage. It also includes predefined catalogs for identification document types and motorcycle maintenance types.
 
 ## Features
 
-- Register and list motorcycle owners.
-- Retrieve, update, and delete owner records.
-- Register and list motorcycles.
-- Retrieve, update, and delete motorcycle records.
-- Register and list maintenance records.
-- Retrieve, update, and delete maintenance records.
-- Validate relationships between owners, motorcycles, and maintenance records.
-- Validate identification document types using a predefined catalog.
-- Validate maintenance types using a predefined catalog.
-- Prevent deleting owners or motorcycles that have associated records.
+- Create, retrieve, list, update, and delete motorcycle owners.
+- Create, retrieve, list, update, and delete motorcycles.
+- Create, retrieve, list, update, and delete maintenance records.
+- Create, retrieve, list, update, and logically delete spare parts.
+- Search for spare parts by name or brand.
+- Filter spare parts by category and active or inactive status.
+- Create, retrieve, list, update, and delete invoices.
+- Validate relationships between owners, motorcycles, maintenance records, spare parts, and invoices.
+- Validate identification document types and maintenance types using predefined catalogs.
+- Prevent the deletion of owners who have associated motorcycles or invoices.
+- Prevent the deletion of motorcycles that have associated maintenance records.
+- Prevent the deletion of maintenance records associated with invoices.
+- Prevent inactive spare parts from being used when creating or updating invoices.
+- Calculate invoice totals based on spare part prices and labor costs.
 
-## Technologies
+## Technologies Used
 
 - Python 3.13
 - FastAPI
 - Pydantic
 - StrEnum for predefined catalogs
-- CSV for data storage
+- CSV files for local data storage
 - Git and GitHub for version control
-
-## Requirements
-
-- Python 3.13 or a compatible version.
-- pip package manager.
-- Git.
 
 ## Installation
 
@@ -56,14 +54,14 @@ python -m venv .venv
 
 **Ubuntu:**
 
-If Python's virtual environment package is not installed, run:
+If the package required to create virtual environments is not installed, run:
 
 ```bash
 sudo apt update
 sudo apt install python3-venv
 ```
 
-Then create and activate the environment:
+Then, create and activate the virtual environment:
 
 ```bash
 python3 -m venv .venv
@@ -72,7 +70,7 @@ source .venv/bin/activate
 
 ### 3. Install dependencies
 
-On Windows and Ubuntu, with the virtual environment activated, run:
+With the virtual environment activated, run:
 
 ```bash
 python -m pip install --upgrade pip
@@ -81,7 +79,7 @@ pip install "fastapi[standard]" email-validator
 
 ## Running the Application
 
-With the virtual environment activated, start the development server:
+With the virtual environment activated, start the development server using:
 
 ```bash
 fastapi dev main.py
@@ -89,17 +87,17 @@ fastapi dev main.py
 
 ## API Documentation
 
-Once the server is running, access the interactive API documentation:
+Once the server is running, you can access the interactive API documentation:
 
-- **Swagger UI:** http://127.0.0.1:8000/docs
-- **ReDoc:** http://127.0.0.1:8000/redoc
+- **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **ReDoc:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-## Data Storage
+## Version Control
 
-MotoSystem stores records locally in CSV files inside the `data/` directory.
+The project uses Git and GitHub for version control.
 
-CSV files are excluded from version control. Therefore, a fresh installation starts without existing records, and users can create new records through the API.
+Repository: [https://github.com/Simon-747/MotoSystem](https://github.com/Simon-747/MotoSystem)
 
 ## Author
 
-### Simon Raul Rodriguez Velosa
+Simón Raúl Rodríguez Velosa
