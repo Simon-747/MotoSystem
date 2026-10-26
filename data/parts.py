@@ -14,6 +14,7 @@ column_fields = [
     "compatible_brands",
     "price",
     "stock",
+    "is_active",
 ]
 
 def write_into_csv(register: Parts):
@@ -63,6 +64,7 @@ def read_all_parts_csv():
                 )
                 row["price"] = float(row["price"])
                 row["stock"] = int(row["stock"])
+                row["is_active"] = row["is_active"].strip().lower() == "true"
 
                 parts_list.append(Parts(**row))
 
@@ -108,28 +110,37 @@ def update_parts_csv(parts_id: int, updated_parts: PartsUpdate):
 
     return None
 
+
 def delete_parts_csv(parts_id: int):
     parts_list = read_all_parts_csv()
-    remaining_parts = [
-        parts for parts in parts_list
-        if parts.id != parts_id
-    ]
 
-    if len(parts_list) == len(remaining_parts):
-        return None
+    for index, parts in enumerate(parts_list):
+        if parts.id == parts_id:
+            if not parts.is_active:
+                return None
 
-    with open(database, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(
-            csvfile,
-            fieldnames=column_fields
-        )
-        writer.writeheader()
-
-        for register in remaining_parts:
-            row = register.model_dump(mode="json")
-            row["compatible_brands"] = ",".join(
-                register.compatible_brands
+            parts_list[index] = Parts(
+                **{
+                    **parts.model_dump(),
+                    "is_active": False,
+                }
             )
-            writer.writerow(row)
 
-    return True
+            with open(database, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(
+                    csvfile,
+                    fieldnames=column_fields
+                )
+                writer.writeheader()
+
+                for register in parts_list:
+                    row = register.model_dump(mode="json")
+                    row["compatible_brands"] = ",".join(
+                        register.compatible_brands
+                    )
+                    writer.writerow(row)
+
+            return True
+
+    return None
+

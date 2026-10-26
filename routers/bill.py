@@ -67,6 +67,12 @@ def create_bill(new_bill: BillCreate):
                 detail=f"Part with id {bill_part.part_id} not found"
             )
 
+        if not part.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Part with id {bill_part.part_id} is inactive"
+            )
+
         bill_parts.append(
             BillPart(
                 part_id=part.id,
@@ -139,6 +145,12 @@ def update_bill(bill_id: int, updated_bill: BillUpdateInput):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Part with id {bill_part['part_id']} not found"
+                )
+
+            if not part.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Part with id {bill_part['part_id']} is inactive"
                 )
 
             bill_parts.append(

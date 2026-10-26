@@ -13,6 +13,7 @@ class PartsBase(BaseModel):
 
 class Parts(PartsBase):
     id: int
+    is_active: bool = True
 
 
 class PartsUpdate(BaseModel):
