@@ -3,7 +3,7 @@ from pydantic import EmailStr
 
 from enums.id_type import IdType
 from models.user import UserBase, UserID, UserUpdate
-from data.image_storage import save_image
+from data.image_storage import save_image, delete_image
 
 from data.user import (
     create_user_register,
@@ -80,6 +80,42 @@ def update_user(user_id: int, updated_user: UserUpdate):
         )
 
     return user
+
+
+@router.patch(
+    "/{user_id}/image",
+    status_code=status.HTTP_200_OK,
+    response_model=UserID
+)
+def update_user_image(user_id: int, image: UploadFile = File(...)):
+    user = read_one_user_csv(user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    old_image_path = user.image
+
+    new_image_path = save_image(image, "users")
+
+    updated_user = update_user_csv(
+        user_id,
+        UserUpdate(image=new_image_path)
+    )
+
+    if updated_user is None:
+        delete_image(new_image_path)
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    delete_image(old_image_path)
+
+    return updated_user
 
 
 @router.delete(
