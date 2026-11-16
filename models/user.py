@@ -9,6 +9,7 @@ class UserBase(BaseModel):
     document: str
     phone_number: str
     email: EmailStr
+    image: str | None = None
 
 class UserID(UserBase):
     id: int
@@ -20,3 +21,4 @@ class UserUpdate(BaseModel):
     document: str | None = None
     phone_number: str | None = None
     email: EmailStr | None = None
+    image: str | None = None

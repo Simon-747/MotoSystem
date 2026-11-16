@@ -14,6 +14,7 @@ column_fields = [
     "document",
     "phone_number",
     "email",
+    "image",
 ]
 
 

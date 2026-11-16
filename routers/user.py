@@ -1,6 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Form, File, UploadFile
+from pydantic import EmailStr
 
+from enums.id_type import IdType
 from models.user import UserBase, UserID, UserUpdate
+from data.image_storage import save_image
+
 from data.user import (
     create_user_register,
     read_all_users_csv,
@@ -15,7 +19,27 @@ router = APIRouter()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserID)
-def create_user(new_user: UserBase):
+def create_user(
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    id_type: IdType = Form(...),
+    document: str = Form(...),
+    phone_number: str = Form(...),
+    email: EmailStr = Form(...),
+    image: UploadFile = File(...),
+):
+    image_path = save_image(image, "users")
+
+    new_user = UserBase(
+        first_name=first_name,
+        last_name=last_name,
+        id_type=id_type,
+        document=document,
+        phone_number=phone_number,
+        email=email,
+        image=image_path,
+    )
+
     return create_user_register(new_user)
 
 
