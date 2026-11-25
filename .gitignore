@@ -21,3 +21,8 @@ Thumbs.db
 
 # Imágenes cargadas por los usuarios
 images/
+
+# Bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
