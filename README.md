@@ -1,38 +1,33 @@
-# MotoSystem V.1
+# MotoSystem
 
-Motorcycle management and maintenance system developed with Python and FastAPI.
+MotoSystem is a motorcycle management and maintenance system developed with Python and FastAPI. It provides tools to manage users, motorcycles, maintenance records, spare parts, and invoices through a REST API.
 
-## Description
-
-MotoSystem is an academic software development project designed to manage motorcycle owners, motorcycles, maintenance records, spare parts, and invoices through FastAPI.
-
-The application uses Pydantic for data validation and CSV files for local data storage. It also includes predefined catalogs for identification document types and motorcycle maintenance types.
+The project uses SQLModel and SQLite for data persistence, Pydantic for data validation, and supports image uploads for user profiles.
 
 ## Features
 
-- Create, retrieve, list, update, and delete motorcycle owners.
-- Create, retrieve, list, update, and delete motorcycles.
-- Create, retrieve, list, update, and delete maintenance records.
-- Create, retrieve, list, update, and logically delete spare parts.
-- Search for spare parts by name or brand.
-- Filter spare parts by category and active or inactive status.
-- Create, retrieve, list, update, and delete invoices.
-- Validate relationships between owners, motorcycles, maintenance records, spare parts, and invoices.
-- Validate identification document types and maintenance types using predefined catalogs.
-- Prevent the deletion of owners who have associated motorcycles or invoices.
-- Prevent the deletion of motorcycles that have associated maintenance records.
-- Prevent the deletion of maintenance records associated with invoices.
-- Prevent inactive spare parts from being used when creating or updating invoices.
-- Calculate invoice totals based on spare part prices and labor costs.
+- **User Management:** Create, read, update, and delete users, including profile image uploads and updates.
+- **Motorcycle Management:** Register, consult, update, and delete motorcycles associated with users.
+- **Maintenance Management:** Record and manage motorcycle maintenance history.
+- **Spare Parts Management:** Manage spare parts, including stock, prices, categories, brands, and compatible motorcycle brands.
+- **Invoice Management:** Create, consult, update, and delete invoices associated with users and maintenance records.
+- **Data Validation:** Validate input data and enforce business rules.
+- **Database Relationships:** Maintain relationships between users, motorcycles, maintenance records, spare parts, and invoices.
+- **Deletion Restrictions:** Prevent deleting records that are still referenced by related entities.
+- **Invoice Calculations:** Automatically calculate parts subtotals and invoice totals.
+- **Inactive Parts Validation:** Prevent inactive spare parts from being included in invoices.
+- **Image Storage:** Upload and update user profile images, stored locally in the project's `images/` directory.
 
 ## Technologies Used
 
-- Python 3.13
-- FastAPI
-- Pydantic
-- StrEnum for predefined catalogs
-- CSV files for local data storage
-- Git and GitHub for version control
+- **Python 3.13**
+- **FastAPI:** REST API development.
+- **Pydantic:** Data validation.
+- **SQLModel:** SQL database models and operations.
+- **SQLAlchemy:** Database engine and connection management.
+- **SQLite:** Relational database.
+- **StrEnum:** Enumerations for predefined values.
+- **Git and GitHub:** Version control and source code management.
 
 ## Installation
 
@@ -43,25 +38,16 @@ git clone https://github.com/Simon-747/MotoSystem.git
 cd MotoSystem
 ```
 
-### 2. Create a virtual environment
+### 2. Create and activate a virtual environment
 
-**Windows (PowerShell):**
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
-
-**Ubuntu:**
-
-If the package required to create virtual environments is not installed, run:
+**Windows:**
 
 ```bash
-sudo apt update
-sudo apt install python3-venv
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
-Then, create and activate the virtual environment:
+**Ubuntu / Linux:**
 
 ```bash
 python3 -m venv .venv
@@ -70,34 +56,42 @@ source .venv/bin/activate
 
 ### 3. Install dependencies
 
-With the virtual environment activated, run:
+Upgrade pip and install the project dependencies:
 
 ```bash
 python -m pip install --upgrade pip
-pip install "fastapi[standard]" email-validator
+pip install -r requirements.txt
 ```
 
 ## Running the Application
 
-With the virtual environment activated, start the development server using:
+Start the development server with:
 
 ```bash
 fastapi dev main.py
 ```
 
-## API Documentation
-
-Once the server is running, you can access the interactive API documentation:
+Once the server is running, the API documentation is available at:
 
 - **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
+## Database and Image Storage
+
+MotoSystem uses SQLite as its database engine, with SQLModel and SQLAlchemy for database management.
+
+- The database is stored locally at `data/db/motosystem.db`.
+- Database tables are created automatically when the application starts.
+- User profile images are stored locally in the project's `images/` directory and served through the `/images` route.
+- The previous CSV implementation is preserved in `data/csv/` for reference. CSV files are no longer used for active data persistence.
+
+The database and uploaded images are local application data and are not included in the Git repository.
+
 ## Version Control
 
-The project uses Git and GitHub for version control.
-
-Repository: [https://github.com/Simon-747/MotoSystem](https://github.com/Simon-747/MotoSystem)
+GitHub repository:
+[https://github.com/Simon-747/MotoSystem](https://github.com/Simon-747/MotoSystem)
 
 ## Author
 
-Simón Raúl Rodríguez Velosa
+**Simón Raúl Rodríguez Velosa**
