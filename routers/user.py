@@ -1,19 +1,30 @@
-from fastapi import APIRouter, HTTPException, status, Form, File, UploadFile
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    status,
+    Form,
+    File,
+    UploadFile,
+    Depends
+)
 from pydantic import EmailStr
+from sqlmodel import Session, select
 
 from enums.id_type import IdType
 from models.user import UserBase, UserID, UserUpdate
-from data.image_storage import save_image, delete_image
+from models.motorcycle import MotorcycleID
+from models.bill import BillDB
 
-from data.user import (
-    create_user_register,
-    read_all_users_csv,
-    read_one_user_csv,
-    update_user_csv,
-    delete_user_csv,
+from data.image_storage import save_image, delete_image
+from data.db.db_connection import get_session
+
+from data.db.operations.user_operation_db import (
+    create_user_db,
+    read_all_users_db,
+    read_one_user_db,
+    update_user_db,
+    delete_user_db
 )
-from data.motorcycle import read_all_motorcycles_csv
-from data.bill import read_all_bills_csv
 
 router = APIRouter()
 
@@ -27,6 +38,7 @@ def create_user(
     phone_number: str = Form(...),
     email: EmailStr = Form(...),
     image: UploadFile = File(...),
+    session: Session = Depends(get_session)
 ):
     image_path = save_image(image, "users")
 
@@ -37,46 +49,53 @@ def create_user(
         document=document,
         phone_number=phone_number,
         email=email,
-        image=image_path,
+        image=image_path
     )
 
-    return create_user_register(new_user)
+    return create_user_db(session, new_user)
 
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=list[UserID])
-def show_users():
-    users = read_all_users_csv()
+def show_users(session: Session = Depends(get_session)):
+    users = read_all_users_db(session)
 
     if not users:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No users found",
+            detail="No users found"
         )
 
     return users
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=UserID)
-def get_user(user_id: int):
-    user = read_one_user_csv(user_id)
+def get_user(
+    user_id: int,
+    session: Session = Depends(get_session)
+):
+    user = read_one_user_db(session, user_id)
 
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail="User not found"
         )
 
     return user
 
 
 @router.patch("/{user_id}", status_code=status.HTTP_200_OK, response_model=UserID)
-def update_user(user_id: int, updated_user: UserUpdate):
-    user = update_user_csv(user_id, updated_user)
+def update_user(
+    user_id: int,
+    updated_user: UserUpdate,
+    session: Session = Depends(get_session)
+):
+    user = update_user_db(session, user_id, updated_user)
 
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail="User not found"
         )
 
     return user
@@ -87,8 +106,12 @@ def update_user(user_id: int, updated_user: UserUpdate):
     status_code=status.HTTP_200_OK,
     response_model=UserID
 )
-def update_user_image(user_id: int, image: UploadFile = File(...)):
-    user = read_one_user_csv(user_id)
+def update_user_image(
+    user_id: int,
+    image: UploadFile = File(...),
+    session: Session = Depends(get_session)
+):
+    user = read_one_user_db(session, user_id)
 
     if user is None:
         raise HTTPException(
@@ -97,10 +120,10 @@ def update_user_image(user_id: int, image: UploadFile = File(...)):
         )
 
     old_image_path = user.image
-
     new_image_path = save_image(image, "users")
 
-    updated_user = update_user_csv(
+    updated_user = update_user_db(
+        session,
         user_id,
         UserUpdate(image=new_image_path)
     )
@@ -122,8 +145,11 @@ def update_user_image(user_id: int, image: UploadFile = File(...)):
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT
 )
-def delete_user(user_id: int):
-    user = read_one_user_csv(user_id)
+def delete_user(
+    user_id: int,
+    session: Session = Depends(get_session)
+):
+    user = read_one_user_db(session, user_id)
 
     if user is None:
         raise HTTPException(
@@ -131,31 +157,26 @@ def delete_user(user_id: int):
             detail="User not found"
         )
 
-    motorcycles = read_all_motorcycles_csv()
-
-    has_motorcycles = any(
-        motorcycle.user_id == str(user_id)
-        for motorcycle in motorcycles
+    motorcycle_statement = select(MotorcycleID).where(
+        MotorcycleID.user_id == user_id
     )
+    motorcycles = session.exec(motorcycle_statement).first()
 
-    if has_motorcycles:
+    if motorcycles is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot delete user with registered motorcycles"
         )
 
-    bills = read_all_bills_csv()
-
-    has_bills = any(
-        bill.user_id == user_id
-        for bill in bills
+    bill_statement = select(BillDB).where(
+        BillDB.user_id == user_id
     )
+    bills = session.exec(bill_statement).first()
 
-    if has_bills:
+    if bills is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot delete user with registered bills"
         )
 
-    delete_user_csv(user_id)
-
+    delete_user_db(session, user_id)

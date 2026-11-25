@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr
+from sqlmodel import SQLModel, Field
 from enums.id_type import IdType
 
 
-class UserBase(BaseModel):
+class UserBase(SQLModel):
     first_name: str
     last_name: str
     id_type: IdType
@@ -11,8 +12,11 @@ class UserBase(BaseModel):
     email: EmailStr
     image: str | None = None
 
-class UserID(UserBase):
-    id: int
+
+class UserID(UserBase, table=True):
+    __tablename__ = "users"
+    id: int | None = Field(default=None, primary_key=True)
+
 
 class UserUpdate(BaseModel):
     first_name: str | None = None

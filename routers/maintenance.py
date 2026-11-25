@@ -1,15 +1,19 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlmodel import Session, select
 
 from models.maintenance import MaintenanceBase, MaintenanceID
-from data.motorcycle import read_all_motorcycles_csv
-from data.maintenance import (
-    create_maintenance_register,
-    read_all_maintenances_csv,
-    read_one_maintenance_csv,
-    update_maintenance_csv,
-    delete_maintenance_csv,
+from models.motorcycle import MotorcycleID
+from models.bill import BillDB
+
+from data.db.db_connection import get_session
+
+from data.db.operations.maintenance_operation_db import (
+    create_maintenance_db,
+    read_all_maintenances_db,
+    read_one_maintenance_db,
+    update_maintenance_db,
+    delete_maintenance_db
 )
-from data.bill import read_all_bills_csv
 
 router = APIRouter()
 
@@ -19,27 +23,31 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     response_model=MaintenanceID
 )
-def create_maintenance(new_maintenance: MaintenanceBase):
-    motorcycle_exists = any(
-        str(motorcycle.id) == new_maintenance.motorcycle_id
-        for motorcycle in read_all_motorcycles_csv()
+def create_maintenance(
+    new_maintenance: MaintenanceBase,
+    session: Session = Depends(get_session)
+):
+    motorcycle = session.get(
+        MotorcycleID,
+        new_maintenance.motorcycle_id
     )
 
-    if not motorcycle_exists:
+    if motorcycle is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Motorcycle not found"
         )
 
-    return create_maintenance_register(new_maintenance)
+    return create_maintenance_db(session, new_maintenance)
+
 
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
     response_model=list[MaintenanceID]
 )
-def show_maintenances():
-    maintenances = read_all_maintenances_csv()
+def show_maintenances(session: Session = Depends(get_session)):
+    maintenances = read_all_maintenances_db(session)
 
     if not maintenances:
         raise HTTPException(
@@ -49,13 +57,17 @@ def show_maintenances():
 
     return maintenances
 
+
 @router.get(
     "/{maintenance_id}",
     status_code=status.HTTP_200_OK,
     response_model=MaintenanceID
 )
-def get_maintenance(maintenance_id: int):
-    maintenance = read_one_maintenance_csv(maintenance_id)
+def get_maintenance(
+    maintenance_id: int,
+    session: Session = Depends(get_session)
+):
+    maintenance = read_one_maintenance_db(session, maintenance_id)
 
     if maintenance is None:
         raise HTTPException(
@@ -73,20 +85,22 @@ def get_maintenance(maintenance_id: int):
 )
 def update_maintenance(
     maintenance_id: int,
-    updated_maintenance: MaintenanceBase
+    updated_maintenance: MaintenanceBase,
+    session: Session = Depends(get_session)
 ):
-    motorcycle_exists = any(
-        str(motorcycle.id) == updated_maintenance.motorcycle_id
-        for motorcycle in read_all_motorcycles_csv()
+    motorcycle = session.get(
+        MotorcycleID,
+        updated_maintenance.motorcycle_id
     )
 
-    if not motorcycle_exists:
+    if motorcycle is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Motorcycle not found"
         )
 
-    maintenance = update_maintenance_csv(
+    maintenance = update_maintenance_db(
+        session,
         maintenance_id,
         updated_maintenance
     )
@@ -104,8 +118,14 @@ def update_maintenance(
     "/{maintenance_id}",
     status_code=status.HTTP_204_NO_CONTENT
 )
-def delete_maintenance(maintenance_id: int):
-    maintenance = read_one_maintenance_csv(maintenance_id)
+def delete_maintenance(
+    maintenance_id: int,
+    session: Session = Depends(get_session)
+):
+    maintenance = read_one_maintenance_db(
+        session,
+        maintenance_id
+    )
 
     if maintenance is None:
         raise HTTPException(
@@ -113,17 +133,15 @@ def delete_maintenance(maintenance_id: int):
             detail="Maintenance not found"
         )
 
-    bills = read_all_bills_csv()
-
-    has_bills = any(
-        bill.maintenance_id == maintenance_id
-        for bill in bills
+    bill_statement = select(BillDB).where(
+        BillDB.maintenance_id == maintenance_id
     )
+    bills = session.exec(bill_statement).first()
 
-    if has_bills:
+    if bills is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot delete maintenance with registered bills"
         )
 
-    delete_maintenance_csv(maintenance_id)
+    delete_maintenance_db(session, maintenance_id)

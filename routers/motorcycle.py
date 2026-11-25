@@ -1,42 +1,46 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlmodel import Session, select
 
 from models.motorcycle import MotorcycleBase, MotorcycleID
-from data.user import read_all_users_csv
+from models.user import UserID
+from models.maintenance import MaintenanceID
 
-from data.motorcycle import (
-    create_motorcycle_register,
-    read_all_motorcycles_csv,
-    read_one_motorcycle_csv,
-    update_motorcycle_csv,
-    delete_motorcycle_csv,
+from data.db.db_connection import get_session
+
+from data.db.operations.motorcycle_operation_db import (
+    create_motorcycle_db,
+    read_all_motorcycles_db,
+    read_one_motorcycle_db,
+    update_motorcycle_db,
+    delete_motorcycle_db
 )
-from data.maintenance import read_all_maintenances_csv
 
 router = APIRouter()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=MotorcycleID)
-def create_motorcycle(new_motorcycle: MotorcycleBase):
-    owner_exists = any(
-        str(user.id) == new_motorcycle.user_id
-        for user in read_all_users_csv()
-    )
+def create_motorcycle(
+    new_motorcycle: MotorcycleBase,
+    session: Session = Depends(get_session)
+):
+    owner = session.get(UserID, new_motorcycle.user_id)
 
-    if not owner_exists:
+    if owner is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Owner not found"
         )
 
-    return create_motorcycle_register(new_motorcycle)
+    return create_motorcycle_db(session, new_motorcycle)
+
 
 @router.get(
-"/",
+    "/",
     status_code=status.HTTP_200_OK,
     response_model=list[MotorcycleID]
 )
-def show_motorcycles():
-    motorcycles = read_all_motorcycles_csv()
+def show_motorcycles(session: Session = Depends(get_session)):
+    motorcycles = read_all_motorcycles_db(session)
 
     if not motorcycles:
         raise HTTPException(
@@ -46,13 +50,17 @@ def show_motorcycles():
 
     return motorcycles
 
+
 @router.get(
     "/{motorcycle_id}",
     status_code=status.HTTP_200_OK,
     response_model=MotorcycleID
 )
-def get_motorcycle(motorcycle_id: int):
-    motorcycle = read_one_motorcycle_csv(motorcycle_id)
+def get_motorcycle(
+    motorcycle_id: int,
+    session: Session = Depends(get_session)
+):
+    motorcycle = read_one_motorcycle_db(session, motorcycle_id)
 
     if motorcycle is None:
         raise HTTPException(
@@ -70,20 +78,19 @@ def get_motorcycle(motorcycle_id: int):
 )
 def update_motorcycle(
     motorcycle_id: int,
-    updated_motorcycle: MotorcycleBase
+    updated_motorcycle: MotorcycleBase,
+    session: Session = Depends(get_session)
 ):
-    owner_exists = any(
-        str(user.id) == updated_motorcycle.user_id
-        for user in read_all_users_csv()
-    )
+    owner = session.get(UserID, updated_motorcycle.user_id)
 
-    if not owner_exists:
+    if owner is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Owner not found"
         )
 
-    motorcycle = update_motorcycle_csv(
+    motorcycle = update_motorcycle_db(
+        session,
         motorcycle_id,
         updated_motorcycle
     )
@@ -101,8 +108,11 @@ def update_motorcycle(
     "/{motorcycle_id}",
     status_code=status.HTTP_204_NO_CONTENT
 )
-def delete_motorcycle(motorcycle_id: int):
-    motorcycle = read_one_motorcycle_csv(motorcycle_id)
+def delete_motorcycle(
+    motorcycle_id: int,
+    session: Session = Depends(get_session)
+):
+    motorcycle = read_one_motorcycle_db(session, motorcycle_id)
 
     if motorcycle is None:
         raise HTTPException(
@@ -110,17 +120,15 @@ def delete_motorcycle(motorcycle_id: int):
             detail="Motorcycle not found"
         )
 
-    maintenances = read_all_maintenances_csv()
-
-    has_maintenances = any(
-        maintenance.motorcycle_id == str(motorcycle_id)
-        for maintenance in maintenances
+    maintenance_statement = select(MaintenanceID).where(
+        MaintenanceID.motorcycle_id == motorcycle_id
     )
+    maintenances = session.exec(maintenance_statement).first()
 
-    if has_maintenances:
+    if maintenances is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot delete motorcycle with registered maintenances"
         )
 
-    delete_motorcycle_csv(motorcycle_id)
+    delete_motorcycle_db(session, motorcycle_id)

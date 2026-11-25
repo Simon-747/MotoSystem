@@ -1,10 +1,20 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 from pathlib import Path
 
-from routers import user, motorcycle, maintenance, parts, bill
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-app = FastAPI()
+from routers import user, motorcycle, maintenance, parts, bill
+from data.db.db_connection import create_db_tables
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)

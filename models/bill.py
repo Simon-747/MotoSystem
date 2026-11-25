@@ -1,4 +1,26 @@
 from pydantic import BaseModel, Field, computed_field
+from sqlmodel import SQLModel, Field as SQLField
+
+
+class BillDB(SQLModel, table=True):
+    __tablename__ = "bills"
+
+    id: int | None = SQLField(default=None, primary_key=True)
+    user_id: int = SQLField(foreign_key="users.id")
+    maintenance_id: int = SQLField(foreign_key="maintenances.id")
+    date: str
+    description: str
+    labor_cost: float = SQLField(ge=0)
+
+
+class BillPartDB(SQLModel, table=True):
+    __tablename__ = "bill_parts"
+
+    id: int | None = SQLField(default=None, primary_key=True)
+    bill_id: int = SQLField(foreign_key="bills.id")
+    part_id: int = SQLField(foreign_key="parts.id")
+    quantity: int = SQLField(gt=0)
+    unit_price: float = SQLField(ge=0)
 
 
 class BillPartInput(BaseModel):
